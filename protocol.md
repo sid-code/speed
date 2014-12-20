@@ -8,5 +8,5 @@ game id|type|data
 
 ## From client to server
 
-``
+
 

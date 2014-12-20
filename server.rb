@@ -3,20 +3,25 @@ require 'em-websocket'
 require './cards.rb'
 require './speed.rb'
 
-handler = proc do |ws|
+module CardGames
+  module Speed
+    class WSServer < CardGames::WSServer
 
-  p self
-  ws.onopen do |handshake|
-    puts "Connection"
+      def onopen(cl, handshake)
+        puts "Connection open."
+        cl.send("Hello!")
+      end
 
-    ws.send("Hello connector!")
-  end
+      def onmessage(cl, channel, mtype, *rest)
+        case mtype
+        when 'search'
+          puts "#{cl} is searching"
+        end
+      end
 
-  ws.onmessage do |msg|
-    channel, mtype, *rest = msg.split('|')
-    
-    case mtype
-    when 'search'
+      def onclose(cl, msg)
+        puts "Connection closed: #{msg}"
+      end
 
     end
   end
@@ -25,5 +30,5 @@ end
 EM.run do
   host = 'localhost'
   port = 8081
-  EM::WebSocket.run(host: host, port: port, &handler)
+  CardGames::Speed::WSServer.new(host, port).run
 end

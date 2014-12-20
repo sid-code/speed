@@ -70,4 +70,72 @@ module CardGames
     end
   end
 
+  class WSServer
+    def initialize(host, port)
+      @host = host
+      @port = port
+      @clients = {}
+      @name_counter = 0
+      @games = []
+    end
+    
+    def run
+      EM::WebSocket.run(host: @host, port: @port, &handler)
+    end
+
+    private
+    
+    def gen_name
+      @name_counter += 1
+      "Player_#{@name_counter}"
+    end
+    
+    def handler
+      proc do |ws|
+        ws.onopen do |handshake|
+          @clients[ws] = cl = Client.new(gen_name, ws)
+          onopen(cl, handshake)
+        end
+
+        ws.onmessage do |msg|
+          _onmessage(cl, msg)
+        end
+
+        ws.onclose do |msg|
+          onclose(cl, msg)
+        end
+      end
+    end
+
+    def onopen(cl, handshake)
+    end
+
+    def _onmessage(cl, msg)
+      channel, mtype, *rest = msg.split('|')
+      
+      onmessage(cl, channel, mtype, *rest)
+    end
+
+    def onmessage(cl, msg, *rest)
+    end
+
+    def onclose(cl, msg)
+    end
+
+    class Client
+      attr_reader :personae, :name
+
+      def initialize(name, ws)
+        @name = name
+        @ws = ws
+        @personae = []
+      end
+
+      def send(*args)
+        @ws.send(*args)
+      end
+    end
+
+  end
+
 end
