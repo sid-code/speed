@@ -10,8 +10,13 @@ $(function() {
     }
 
     $(".search").click(function() {
-      ws.send("search", "")
-    })
+      ws.send("search")
+    });
+
+    $(".start").click(function() {
+      ws.send("start")
+      $(this).hide();
+    });
   };
 
   ws.onmessage = function(msg) {
@@ -40,7 +45,7 @@ $(function() {
   $(".start").hide();
   var game = {
     newGame: function() {
-      $(".start").show();
+      $(".gameview").show();
     }
   };
 });
