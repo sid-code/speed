@@ -98,11 +98,11 @@ module CardGames
         end
 
         ws.onmessage do |msg|
-          _onmessage(cl, msg)
+          _onmessage(@clients[ws], msg)
         end
 
         ws.onclose do |msg|
-          onclose(cl, msg)
+          onclose(@clients[ws], msg)
         end
       end
     end
