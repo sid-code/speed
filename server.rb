@@ -25,11 +25,31 @@ module CardGames
 
       def onopen(cl, handshake)
         puts "Connection open."
-        cl.send("name", '', cl.name)
+        cl.send("name", "", cl.name)
       end
 
       def onmessage(cl, channel, mtype, *rest)
         case mtype
+        when :rename
+          if @channels.any? { |_, ch| ch.clients.include? cl }
+            return cl.send("error", "", "You cannot rename while in a game.")
+          end
+          newname = rest[0]
+          if !newname
+            return cl.send("error", "", "You need to specify a name.")
+          end
+          if newname.size > 19 || newname.size < 3
+            return cl.send("error", "", "Names can only be 3-19 characters long.")
+          end
+
+          cname = Utility.condense_name(newname)
+          if @clients.any? { |_, ocl| cl != ocl && Utility.condense_name(ocl.name) == cname }
+            return cl.send("error", "", "That name is taken.")
+          end
+          cl.rename(newname)
+
+          cl.send("name", "", newname)
+
         when :start
           return unless channel
           channel.is_ready(cl)
@@ -46,7 +66,9 @@ module CardGames
           return unless channel
           player = cl.persona_for(channel)
 
-          return unless channel.game.make_play(player, *rest.map(&:to_i))
+          from = rest[0].to_i
+          to = rest[1].to_i
+          return unless channel.game.make_play(player, from, to)
           channel.update_players
         when :flip
           return unless channel
@@ -62,7 +84,7 @@ module CardGames
       def onclose(cl, msg)
         puts "Connection closed: #{msg}"
         @searchers.delete(cl)
-        @clients.delete(cl)
+        @clients.delete(cl.ws)
         @channels.each do |id, channel|
           cls = channel.clients
           if cls.include? cl

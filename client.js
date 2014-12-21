@@ -1,4 +1,5 @@
 $(function() {
+
   var ws = new WebSocket("ws://localhost:8081");
   var game;
 
@@ -13,6 +14,16 @@ $(function() {
     $(".search").click(function() {
       $(".searchmsg").show();
       ws.send("search");
+    });
+
+    $(".name").click(function() {
+      $(this).hide();
+      $(".namefield").val($(this).text());
+      $(".nameinput").show();
+    });
+
+    $(".namebutton").click(function() {
+      ws.send("rename", $(".namefield").val());
     });
   };
 
@@ -160,13 +171,15 @@ $(function() {
 });
 
 function updateName(name) {
-  $(".name").text(name);
+  $(".name").show().text(name);
+  $(".nameinput").hide();
 }
 
 function resetView() {
   $(".nongameview").show();
   $(".searchmsg").hide();
   $(".gameview:not(.generic-gameview)").detach();
+  $(".nameinput").hide();
 }
 
 

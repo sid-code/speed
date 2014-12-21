@@ -1,5 +1,7 @@
 # encoding: utf-8
 
+require './util.rb'
+
 module CardGames
   class Deck
     attr_reader :cards
@@ -149,7 +151,7 @@ module CardGames
     end
 
     class Client
-      attr_reader :personae, :name
+      attr_reader :personae, :name, :ws
 
       def initialize(name, ws)
         @name = name
@@ -175,6 +177,10 @@ module CardGames
         message = "#{channel}|#{mtype}|#{rest.join('|')}"
         @ws.send(message)
       end
+
+      def rename(newname)
+        @name = newname
+      end
     end
   end
 
@@ -195,6 +201,5 @@ module CardGames
       event(:start)
     end
   end
-
 
 end
