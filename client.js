@@ -1,5 +1,6 @@
 $(function() {
   var ws = new WebSocket("ws://localhost:8081");
+  var game;
 
   ws.onopen = function() {
     var oldSend = this.send;
@@ -10,12 +11,8 @@ $(function() {
     }
 
     $(".search").click(function() {
-      ws.send("search")
-    });
-
-    $(".start").click(function() {
-      ws.send("start")
-      $(this).hide();
+      $(".searchmsg").show();
+      ws.send("search");
     });
   };
 
@@ -27,12 +24,29 @@ $(function() {
     var rest = parts.slice(2);
 
     switch (mtype) {
+      case 'name':
+        updateName(rest[0]); break;
       case 'newgame':
-        game.newGame(); break;
+        $(".nongameview").hide();
+        game = new Game(channel);
+        game.show();
+        break;
       case 'start':
-        game.start(); break;
+        game.start();
+        break;
       case 'update':
-        game.updateView(JSON.parse(rest[0])); break;
+        game.updateView(
+          rest[0].split(',').map(cardFromString), 
+          rest[1], 
+          rest[2].split(',').map(cardFromString)
+        );
+        break;
+      case 'stuck':
+        game.showFlip(); break;
+      case 'flip':
+        game.hideWait(); break;
+      case 'win':
+        game.winner(rest[0]); break;
     }
   };
 
@@ -42,10 +56,129 @@ $(function() {
 
   ws.onerror = function(err) {};
 
-  $(".start").hide();
-  var game = {
-    newGame: function() {
-      $(".gameview").show();
-    }
+
+  var Game = function(id) {
+    this.id = id;
+    this.makeView();
   };
+
+  Game.prototype.makeView = function() {
+    var $view = $(".generic-gameview").clone().toggleClass("generic-gameview");
+
+    $view.find(".reset").click(resetView).hide();
+    $view.find(".start").click(function() {
+      ws.send("start", '', game.id);
+      $(this).hide();
+      $(".waiting").show();
+    });
+
+    $view.find(".flip").click(function() {
+      ws.send("flip", '', game.id);
+      $(this).hide();
+      $(".waiting").show();
+    }).hide();
+
+    this.$view = $view;
+    this.hideWait();
+  };
+
+  Game.prototype.show = function() {
+    this.$view.show().appendTo(document.body);
+  };
+
+  Game.prototype.hideWait = function() {
+    this.$view.find(".waiting").hide();
+  };
+
+  Game.prototype.start = function() {
+    this.hideWait();
+  };
+
+  Game.prototype.winner = function(who) {
+    var $winner = this.$view.find(".winner");
+    var $reset = this.$view.find(".reset");
+    $winner.show();
+    if (who === $(".name").text()) {
+      $winner.text("You won!");
+    } else {    
+      $winner.text(who + " won. Better luck next time.");
+    }
+
+    $reset.show();
+  };
+
+  Game.prototype.showFlip = function() {
+    this.$view.find(".flip").show();
+  };
+
+  Game.prototype.updateView = function(hand, reserveSize, piles) {
+    var reserveText = "You have " + reserveSize + 
+      (reserveSize === 1 ? " card" : " cards") + " in reserve.";
+
+    this.$view.find(".reserve").text(reserveText);
+    
+    var $hl = this.$view.find(".hand").html("");
+    var $pl = this.$view.find(".piles").html("");
+    hand.forEach(function($card, index) {
+      $card.toggleClass('card')
+        .attr("draggable", true)
+        .data("index", index).on("dragstart", function(e) {
+        e.originalEvent.dataTransfer.setData("index", $(this).data("index"));
+      });
+
+      $hl.append($card);
+    });
+
+    piles.forEach(function($card, index) {
+      $card.toggleClass("card")
+        .attr("draggable", true)
+        .data("index", index).on("dragover", function() {
+        return false;
+      }).on('dragenter', function() {
+        return false;
+      }).on('drop', function(e) {
+        var droppedIndex = parseInt(e.originalEvent.dataTransfer.getData("index"));
+        var thisIndex = parseInt($(this).data("index"));
+
+        if (!isNaN(droppedIndex)) {
+          ws.send("play", [droppedIndex, thisIndex].join("|"), game.id);
+        }
+        return false;
+      });
+
+      $pl.append($card);
+    });
+  };
+
+
+  resetView();
+
 });
+
+function updateName(name) {
+  $(".name").text(name);
+}
+
+function resetView() {
+  $(".nongameview").show();
+  $(".searchmsg").hide();
+  $(".gameview:not(.generic-gameview)").detach();
+}
+
+
+function cardFromString(str) {
+  var parts = str.split(':');
+  var rank = parseInt(parts[0]);
+  var suit = parts[1];
+  rank = {11: 'j', 12: 'q', 13: 'k'}[rank] || rank;
+
+  var src;
+  if (rank == 0) {
+    src = "./card-images/b1fv.png";
+  } else {
+    src = "./card-images/" + suit[0].toLowerCase() + rank + ".png";
+  }
+
+  return $("<img>").attr("src", src);
+  
+}

@@ -2,17 +2,26 @@
 <head>
   <script src="https://code.jquery.com/jquery-2.1.3.min.js"></script>
   <script src="./client.js"></script>
-  <script src="./JavaScript-Playing-Cards/playingCards.js"></script>
-  <script src="./JavaScript-Playing-Cards/playingCards.ui.js"></script>
-  <link rel="stylesheet" href="./JavaScript-Playing-Cards/playingCards.ui.css"></link>
   <link rel="stylesheet" href="./client.css"></link>
 </head>
 <body>
-  <button class="search">search</button>
-  <div class="gameview">
-    <div class="table"></div>
-    <div class="hand"></div>
+  <div class="nameview">Your name: <div class="name">name goes here</div></div>
+  <div class="nongameview">
+    <button class="search">search</button>
+    <div class="searchmsg">searching...</div>
+  </div>
+  <div class="generic-gameview gameview">
     <button class="start">start</button>
+    <button class="flip">flip</button>
+    <div class="waiting">Waiting for other players...</div>
+    <br>
+    <div class="table">
+      <div class="piles"></div>
+      <div class="hand"></div>
+      <div class="reserve"></div>
+    </div>
+    <div class="winner"></div>
+    <button class="reset">reset</button>
   </div>
 </body>
 

@@ -1,7 +1,21 @@
-.hand {
-  
+.piles .card {
+  padding: 20px;
 }
 
-.table {
+.generic-gameview {
+  display: none;
+}
 
+.gameview {
+  text-align: center;
+  border: 1px solid black;
+  width: 400px;
+}
+
+.name {
+  display: inline-block;
+}
+
+.searchmsg {
+  display: inline-block;
 }

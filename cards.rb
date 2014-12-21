@@ -45,6 +45,10 @@ module CardGames
     def to_s
       "#{RANK_NAMES[rank]}#{SUITS[suit]}"
     end
+
+    def to_mstr
+      "#{rank}:#{suit.to_s.capitalize}"
+    end
   end
 
   # defines a generic player (one hand)
@@ -76,7 +80,7 @@ module CardGames
       @port = port
       @clients = {}
       @name_counter = 0
-      @games = []
+      @channels = {}
     end
     
     def run
@@ -85,6 +89,11 @@ module CardGames
 
     private
     
+    def add_game(game, clients)
+      id = @channels.size.to_s
+      @channels[id] = Channel.new(id, game, clients)
+    end
+
     def gen_name
       @name_counter += 1
       "Player_#{@name_counter}"
@@ -113,7 +122,7 @@ module CardGames
     def _onmessage(cl, msg)
       channel, mtype, *rest = msg.split('|')
       
-      onmessage(cl, channel, mtype, *rest)
+      onmessage(cl, @channels[channel], mtype.to_sym, *rest)
     end
 
     def onmessage(cl, msg, *rest)
@@ -122,20 +131,70 @@ module CardGames
     def onclose(cl, msg)
     end
 
+    class Channel
+      attr_reader :game, :id, :clients, :status
+
+      def initialize(id, game, clients)
+        @game = game
+        @id = id
+        @clients = clients
+        @status = {}
+      end
+
+      def send(mtype, *payload)
+        @clients.each do |cl|
+          cl.send(mtype, @id, *payload)
+        end
+      end
+    end
+
     class Client
       attr_reader :personae, :name
 
       def initialize(name, ws)
         @name = name
         @ws = ws
-        @personae = []
+
+        # maps channel to player
+        @personae = {}
       end
 
-      def send(*args)
-        @ws.send(*args)
+      def add_persona(channel, player)
+        @personae[channel] = player
+      end
+
+      def persona_for(channel)
+        @personae[channel]
+      end
+
+      def remove_persona(channel)
+        @personae.delete(channel)
+      end
+
+      def send(mtype, channel='', *rest)
+        message = "#{channel}|#{mtype}|#{rest.join('|')}"
+        @ws.send(message)
       end
     end
-
   end
+
+  class Game
+    attr_reader :event_cb, :started
+    
+    def initialize(&event_cb)
+      @event_cb = event_cb
+      @started = false
+    end
+
+    def event(type, *payload)
+      @event_cb.call(type, *payload)
+    end
+
+    def start
+      @started = true
+      event(:start)
+    end
+  end
+
 
 end

@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require './cards'
+require './cards.rb'
 
 module CardGames
   module Speed
@@ -24,17 +24,19 @@ module CardGames
       end
     end
 
-    class Game
+    class Game < CardGames::Game
       attr_reader :players, :deck
 
       attr_reader :play_piles, :reserve_piles
 
-      def initialize(players = [])
+      def initialize(players = [], &event_cb)
         @players = players
         @deck = Deck.new.shuffle
 
         @play_piles = []
         @reserve_piles = []
+
+        super(&event_cb)
       end
 
       def <<(player)
@@ -70,6 +72,17 @@ module CardGames
         end
       end
 
+      def flip
+        @reserve_piles.zip(@play_piles).each do |rp, pp|
+          pp.unshift(rp.pop)
+          if rp.size == 0
+            rp.replace(pp[2..-1].shuffle)
+            pp.replace([pp[0]])
+          end
+        end
+        check_if_stuck
+      end
+
       def to_s
         buf = ""
         buf << @players.map(&:to_s).join(", ") << "\n"
@@ -77,6 +90,7 @@ module CardGames
       end
 
       def make_play(player, card_index, pile_index)
+        return unless @started
         play_card = player.hand[card_index]
         pile = @play_piles[pile_index]
         top_card = pile.first
@@ -85,22 +99,46 @@ module CardGames
         pile.unshift(player.play(play_card))
         player.fill_hand
 
+        return if check_for_winner
+        check_if_stuck
+
         self
+      end
+
+      def update_message_for(player)
+        buf = ""
+        buf << player.hand.map(&:to_mstr).join(",")
+        buf << "|" << player.reserve_cards.size.to_s
+        buf << "|" << @play_piles.map { |pile| 
+                        @started ? pile.first.to_mstr : "0:" 
+                      }.join(",")
+      end
+
+      private
+      def check_for_winner
+        winner = @players.find { |pl|
+                   pl.hand.size == 0 && pl.reserve_cards.size == 0
+                 }
+
+        if winner
+          event(:win, winner)
+        end
       end
 
       def check_if_stuck
         @players.each do |pl|
-          ranks = pl.hand.map(&:ranks)
-          @piles.each do |pile|
+          ranks = pl.hand.map(&:rank)
+          @play_piles.each do |pile|
             top_rank = pile.first.rank
             if ranks.any? { |rank| valid_play(top_rank, rank) }
               return false
             end
           end
         end
+
+        event(:stuck)
       end
 
-      private
 
       def valid_play(top_rank, play_rank)
         ok = [top_rank + 1, top_rank, top_rank - 1]
@@ -109,6 +147,7 @@ module CardGames
         ok.include?(play_rank);
       end
     end
+
   end
 
 end
