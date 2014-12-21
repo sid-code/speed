@@ -2,8 +2,8 @@ require 'eventmachine'
 require 'em-websocket'
 require 'json'
 
-require './cards.rb'
-require './speed.rb'
+require './server/cards.rb'
+require './server/speed.rb'
 
 module CardGames
   module Speed

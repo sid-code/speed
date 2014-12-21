@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-require './cards.rb'
+require './server/cards.rb'
 
 module CardGames
   module Speed
