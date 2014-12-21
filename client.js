@@ -18,8 +18,8 @@ $(function() {
 
     $(".name").click(function() {
       $(this).hide();
-      $(".namefield").val($(this).text());
       $(".nameinput").show();
+      $(".namefield").val($(this).text()).focus();
     });
 
     $(".namebutton").click(function() {
@@ -37,6 +37,8 @@ $(function() {
     switch (mtype) {
       case 'name':
         updateName(rest[0]); break;
+      case 'nameerror':
+        nameError(rest[0]); break;
       case 'newgame':
         $(".nongameview").hide();
         game = new Game(channel);
@@ -146,7 +148,6 @@ $(function() {
 
     piles.forEach(function($card, index) {
       $card.toggleClass("card")
-        .attr("draggable", true)
         .data("index", index).on("dragover", function() {
         return false;
       }).on('dragenter', function() {
@@ -168,11 +169,33 @@ $(function() {
 
   resetView();
 
+  $(".nameerror").click(function() {
+    $(".nameerror").hide();
+  });
+
+  $(".namefield").keydown(function(e) {
+    if (e.which == 27) {
+      updateName();
+    } else if (e.which == 13) {
+      $(".namebutton").click();
+    }
+  }).blur(function() {
+    updateName();
+  });
+
 });
 
 function updateName(name) {
-  $(".name").show().text(name);
+  $(".name").show();
+  if (name != null) {
+    $(".name").text(name);
+  }
+
   $(".nameinput").hide();
+}
+
+function nameError(err) {
+  $(".nameerror").text("Error: " + err + " (click to hide)");
 }
 
 function resetView() {

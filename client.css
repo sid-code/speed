@@ -27,3 +27,7 @@
 .nameinput {
   display: inline-block;
 }
+
+.nameerror {
+  color: red;
+}

@@ -32,19 +32,19 @@ module CardGames
         case mtype
         when :rename
           if @channels.any? { |_, ch| ch.clients.include? cl }
-            return cl.send("error", "", "You cannot rename while in a game.")
+            return cl.send("nameerror", "", "You cannot rename while in a game.")
           end
-          newname = rest[0]
+          newname = rest[0].capitalize
           if !newname
-            return cl.send("error", "", "You need to specify a name.")
+            return cl.send("nameerror", "", "You need to specify a name.")
           end
           if newname.size > 19 || newname.size < 3
-            return cl.send("error", "", "Names can only be 3-19 characters long.")
+            return cl.send("nameerror", "", "Names can only be 3-19 characters long.")
           end
 
           cname = Utility.condense_name(newname)
           if @clients.any? { |_, ocl| cl != ocl && Utility.condense_name(ocl.name) == cname }
-            return cl.send("error", "", "That name is taken.")
+            return cl.send("nameerror", "", "That name is taken.")
           end
           cl.rename(newname)
 
