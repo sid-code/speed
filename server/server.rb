@@ -168,8 +168,3 @@ module CardGames
   end
 end
 
-EM.run do
-  host = 'localhost'
-  port = 8081
-  CardGames::Speed::WSServer.new(host, port).run
-end
