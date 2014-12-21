@@ -92,6 +92,8 @@ module CardGames
       def make_play(player, card_index, pile_index)
         return unless @started
         play_card = player.hand[card_index]
+        return unless play_card
+
         pile = @play_piles[pile_index]
         top_card = pile.first
 
@@ -112,6 +114,7 @@ module CardGames
         buf << "|" << @play_piles.map { |pile| 
                         @started ? pile.first.to_mstr : "0:" 
                       }.join(",")
+        buf << "|" << @players.map(&:name).join(",")
       end
 
       private

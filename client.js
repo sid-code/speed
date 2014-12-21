@@ -36,9 +36,10 @@ $(function() {
         break;
       case 'update':
         game.updateView(
-          rest[0].split(',').map(cardFromString), 
+          rest[0].split(",").map(cardFromString), 
           rest[1], 
-          rest[2].split(',').map(cardFromString)
+          rest[2].split(",").map(cardFromString),
+          rest[3].split(",")
         );
         break;
       case 'stuck':
@@ -65,15 +66,16 @@ $(function() {
   Game.prototype.makeView = function() {
     var $view = $(".generic-gameview").clone().toggleClass("generic-gameview");
 
+    var _this = this;
     $view.find(".reset").click(resetView).hide();
     $view.find(".start").click(function() {
-      ws.send("start", '', game.id);
+      ws.send("start", '', _this.id);
       $(this).hide();
       $(".waiting").show();
     });
 
     $view.find(".flip").click(function() {
-      ws.send("flip", '', game.id);
+      ws.send("flip", '', _this.id);
       $(this).hide();
       $(".waiting").show();
     }).hide();
@@ -111,11 +113,13 @@ $(function() {
     this.$view.find(".flip").show();
   };
 
-  Game.prototype.updateView = function(hand, reserveSize, piles) {
+  Game.prototype.updateView = function(hand, reserveSize, piles, players) {
     var reserveText = "You have " + reserveSize + 
       (reserveSize === 1 ? " card" : " cards") + " in reserve.";
 
     this.$view.find(".reserve").text(reserveText);
+
+    this.$view.find(".players").text("Players: " + players.join(" - "));
     
     var $hl = this.$view.find(".hand").html("");
     var $pl = this.$view.find(".piles").html("");
