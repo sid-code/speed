@@ -63,6 +63,18 @@ module CardGames
         puts "Connection closed: #{msg}"
         @searchers.delete(cl)
         @clients.delete(cl)
+        @channels.each do |id, channel|
+          cls = channel.clients
+          if cls.include? cl
+            cls.delete(cl)
+            channel.game.event(:leave, cl)
+          end
+          if cls.size == 1
+            channel.game.event(:win, cls.first)
+          elsif cls.size == 0
+            @channels.delete(id)
+          end
+        end
       end
 
       def handle_game_event(channel, event, *payload)
