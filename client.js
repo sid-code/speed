@@ -23,8 +23,15 @@ $(function() {
     });
 
     $(".namebutton").click(function() {
-      ws.send("rename", $(".namefield").val());
+      var name = $(".namefield").val();
+      localStorage.setItem("setname", name);
+      ws.send("rename", name);
     });
+
+    var name = localStorage.getItem("setname");
+    if (name) {
+      ws.send("rename", name);
+    }
   };
 
   ws.onmessage = function(msg) {
