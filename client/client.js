@@ -15,7 +15,7 @@ $(function() {
 
     $(".search").click(function() {
       $(".searchmsg").show();
-      ws.send("search");
+      ws.send("search", $(".searchnum").val());
     });
 
     $(".name").click(function() {

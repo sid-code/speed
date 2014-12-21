@@ -13,7 +13,7 @@ module CardGames
 
       def initialize(*args)
         super(*args)
-        @searchers = []
+        @searchers = {}
       end
 
       private
@@ -34,6 +34,7 @@ module CardGames
           if @channels.any? { |_, ch| ch.clients.include? cl }
             return cl.send("nameerror", "", "You cannot rename while in a game.")
           end
+          return unless rest[0]
           newname = rest[0].capitalize
           if !newname
             return cl.send("nameerror", "", "You need to specify a name.")
@@ -58,10 +59,10 @@ module CardGames
             channel.update_players
           end
         when :search
-          return if @searchers.include? cl
+          return if @searchers[cl]
           puts "#{cl} is searching"
-          @searchers << cl
-          check_searchers
+          @searchers[cl] = rest[0].to_i rescue 2
+          new_searcher(cl)
         when :play
           return unless channel
           player = cl.persona_for(channel)
@@ -112,9 +113,17 @@ module CardGames
 
       end
 
-      def check_searchers
-        if @searchers.size >= GAME_SIZE
-          clients = @searchers.pop(GAME_SIZE)
+      def new_searcher(cl)
+        cl_num_players = @searchers[cl]
+        viable = @searchers.select { |cl, num_players|
+          num_players == 0 || num_players == cl_num_players
+        }.map(&:first)
+
+        if viable.size >= cl_num_players
+          # the following works because .each returns the original array
+          clients = viable.pop(cl_num_players).each do |cl|
+            @searchers.delete(cl)
+          end
           players = clients.map do |searcher|
             Player.new(searcher.name)
           end
@@ -133,8 +142,6 @@ module CardGames
           game.setup
           channel.send("newgame")
           channel.update_players
-
-          check_searchers
         end
       end
 
