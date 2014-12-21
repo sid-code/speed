@@ -1,5 +1,3 @@
-require 'eventmachine'
-require 'em-websocket'
 require 'json'
 
 require './server/cards.rb'

@@ -1,3 +1,6 @@
+
+require 'eventmachine'
+require 'em-websocket'
 require './server/server.rb'
 
 EM.run do
