@@ -111,10 +111,15 @@ module CardGames
         buf = ""
         buf << player.hand.map(&:to_mstr).join(",")
         buf << "|" << player.reserve_cards.size.to_s
-        buf << "|" << @play_piles.map { |pile| 
-                        @started ? pile.first.to_mstr : "0:" 
-                      }.join(",")
-        buf << "|" << @players.map(&:name).join(",")
+        buf << "|" << 
+          @play_piles.map { |pile| 
+            @started ? pile.first.to_mstr : "0:" 
+          }.join(",")
+
+        buf << "|" <<
+          @players.map { |pl| 
+            "#{pl.name} (#{pl.reserve_cards.size})"
+          }.join(",")
       end
 
       private
