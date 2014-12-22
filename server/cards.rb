@@ -87,18 +87,6 @@ module CardGames
       EM::WebSocket.run(host: host, port: port, &handler_em)
     end
 
-    private
-    
-    def add_game(game, clients)
-      id = @channels.size.to_s
-      @channels[id] = Channel.new(id, game, clients)
-    end
-
-    def gen_name
-      @name_counter += 1
-      "Player_#{@name_counter}"
-    end
-    
     def handler_em
       proc do |ws|
         ws.onopen do |handshake|
@@ -133,6 +121,18 @@ module CardGames
       end
     end
 
+    private
+    
+    def add_game(game, clients)
+      id = @channels.size.to_s
+      @channels[id] = Channel.new(id, game, clients)
+    end
+
+    def gen_name
+      @name_counter += 1
+      "Player_#{@name_counter}"
+    end
+    
     def onopen(cl, handshake)
     end
 
