@@ -83,8 +83,8 @@ module CardGames
       @channels = {}
     end
 
-    def run(host, port)
-      EM::WebSocket.run(host: host, port: port, &handler)
+    def run
+      EM::WebSocket.run(host: @host, port: @port, &handler_em)
     end
 
     private
@@ -99,7 +99,7 @@ module CardGames
       "Player_#{@name_counter}"
     end
     
-    def handler
+    def handler_em
       proc do |ws|
         ws.onopen do |handshake|
           @clients[ws] = cl = Client.new(gen_name, ws)
@@ -111,6 +111,23 @@ module CardGames
         end
 
         ws.onclose do |msg|
+          onclose(@clients[ws], msg)
+        end
+      end
+    end
+
+    def handler_faye
+      proc do |ws|
+        ws.on :open do |event|
+          @clients[ws] = cl = Client.new(gen_name, ws)
+          onopen(cl, event)
+        end
+
+        ws.on :message do |event|
+          _onmessage(@clients[ws], event.data)
+        end
+
+        ws.on :close do |event|
           onclose(@clients[ws], msg)
         end
       end
