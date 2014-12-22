@@ -5,9 +5,11 @@ module CardGames
   module Speed
     class App < Sinatra::Base
       set :port, 80
+      set :views, './client'
       get '/' do
-        erb :'client/index.html'
+        erb :'index.html'
       end
     end
   end
 end
+
