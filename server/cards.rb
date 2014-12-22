@@ -77,16 +77,14 @@ module CardGames
   end
 
   class WSServer
-    def initialize(host, port)
-      @host = host
-      @port = port
+    def initialize
       @clients = {}
       @name_counter = 0
       @channels = {}
     end
     
-    def run
-      EM::WebSocket.run(host: @host, port: @port, &handler_em)
+    def run(host, port)
+      EM::WebSocket.run(host: host, port: port, &handler_em)
     end
 
     private
