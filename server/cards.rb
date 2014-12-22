@@ -116,7 +116,7 @@ module CardGames
         end
 
         ws.on :close do |event|
-          onclose(@clients[ws], msg)
+          onclose(@clients[ws], event.data)
         end
       end
     end
