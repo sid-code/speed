@@ -1,8 +1,8 @@
 $(function() {
 
-  var host = location.hash.slice(1) || "localhost";
+  // var host = location.hash.slice(1) || "localhost";
 
-  var ws = new WebSocket("ws://"+host+":8081");
+  var ws = new WebSocket("ws://"+location.host+":8081");
   var game;
 
   ws.onopen = function() {
