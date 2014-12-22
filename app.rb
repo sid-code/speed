@@ -8,7 +8,7 @@ module CardGames
       set :views, './client'
       set :public_folder, './client'
       get '/' do
-        erb :'index.html'
+        send_file 'index.html'
       end
     end
   end
