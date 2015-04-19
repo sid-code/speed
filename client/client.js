@@ -11,7 +11,7 @@ $(function() {
       if (!channel) channel = "";
 
       oldSend.call(this, [channel, mtype, message].join('|'));
-    }
+    };
 
     $(".search").click(function() {
       $(".searchmsg").show();
@@ -145,12 +145,15 @@ $(function() {
     
     var $hl = this.$view.find(".hand").html("");
     var $pl = this.$view.find(".piles").html("");
+    var _this = this;
     hand.forEach(function($card, index) {
       $card.toggleClass('card')
         .attr("draggable", true)
         .data("index", index).on("dragstart", function(e) {
         e.originalEvent.dataTransfer.setData("index", $(this).data("index"));
-      });
+        }).click(function() {
+          _this.$view.data("selected-card", $(this).data("index"));
+        });
 
       $hl.append($card);
     });
@@ -169,6 +172,13 @@ $(function() {
           ws.send("play", [droppedIndex, thisIndex].join("|"), game.id);
         }
         return false;
+      }).click(function() {
+        var selected = _this.$view.data("selected-card");
+        var thisIndex = parseInt($(this).data("index"));
+        if (selected >= 0) {
+          ws.send("play", [selected, thisIndex].join("|"), game.id);
+          _this.$view.data("selected-card", -1);
+        }
       });
 
       $pl.append($card);
